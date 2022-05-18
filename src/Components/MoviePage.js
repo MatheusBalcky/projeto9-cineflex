@@ -1,33 +1,41 @@
 import '../Styles/MoviePage.css';
-import FooterMovie from './FooterMovie';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import React, { useEffect } from 'react';
+import FooterMovie from './FooterMovie';
 
 
-function Session () {
+
+function Session ({weekDay, date, showtime}) {
+    function ShowTime ({hour}){
+        return (
+            <div className='hourSession'>
+                <span>{hour}</span>
+            </div>
+        )
+    }
     return (
         <div className='session'>
-            <h2>Quinta-feira - 24/06/2021</h2>
+            <h2>{`${weekDay} - ${date}`}</h2>
             <div className='boxHourSession'>
-                <div className='hourSession'>
-                    <span>17:00</span>
-                </div>
-                <div className='hourSession'>
-                    <span>17:00</span>
-                </div>
+                {showtime.map( item => <ShowTime key={item.id} hour={item.name} /> )}
             </div>
         </div>
     )
 }
 
 export default function MoviePage (){
+    const [sessions, setSessions] = React.useState([]);
 
     const {idFilme} = useParams();
-    const promise = axios.get(`https://mock-api.driven.com.br/api/v5/cineflex/movies/${idFilme}/showtimes`);
-    promise.then( response => {
-        console.log(response.data)
-    }) 
-
+    useEffect(() =>{
+        const promise = axios.get(`https://mock-api.driven.com.br/api/v5/cineflex/movies/${idFilme}/showtimes`);
+        promise.then( response => {
+        setSessions(response.data.days)
+    });
+    }, [])
+    
+    console.log(sessions);
 
     return (
         <main>
@@ -35,7 +43,13 @@ export default function MoviePage (){
 
                 <h1><span>Selecione o Horário</span></h1>
 
-                <Session />
+                {sessions.length === 0 ? 'Carregando sessões...' :
+                sessions.map( item => <Session key={item.id}
+                    date={item.date}
+                    weekDay={item.weekday}
+                    showtime={item.showtimes}
+                />)
+                }
 
             </div>
 
