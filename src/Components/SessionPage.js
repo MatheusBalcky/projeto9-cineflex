@@ -2,21 +2,58 @@ import styled from 'styled-components';
 import FooterMovie from './FooterMovie';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
-function SeatComponent (){
-    return(
-        <>
-        </>
-    )
+const seats = [];
+
+function Seat ({ name, isAvailable }){
+    const [click, setClick] = useState(false)
+
+    function clickSeat (seat){
+        let teste = seats.indexOf(seat);
+        if(teste === -1){
+            seats.push(seat)
+            setClick(!click)
+        } else {
+            seats.splice(teste, 1);
+            setClick(!click);
+        }
+        console.log(seats, ' o array');
+
+    }
+
+
+    if (isAvailable){
+        return (
+        <SeatToChose
+        isAvailable={isAvailable}
+        onClick={ () => clickSeat(name)}
+        isClicked={click}>
+
+            <span>{name}</span>
+
+        </SeatToChose>
+        )
+
+    } else {
+        return (
+            <SeatUnavailable>
+                <span>{name}</span>
+            </SeatUnavailable>
+        )
+    }
+   
 }
 
+
 export default function SessionPage (){
-    const [movie, setMovie] = React.useState([]);
-    const [weekDay, setWeekDay] = React.useState('');
-    const [hour, setHour] = React.useState('');
-    const [seats, setSeats] =  React.useState([]);
+    const [movie, setMovie] = useState([]);
+    const [weekDay, setWeekDay] = useState('');
+    const [hour, setHour] = useState('');
+    const [seats, setSeats] =  useState([]);
+    const [cpf, setCpf] = useState('');
+    const [name, setName] = useState('');
 
     const sessionId = useParams();
     useEffect( () => {
@@ -30,7 +67,16 @@ export default function SessionPage (){
         })
     },[]);
 
-    const [colorSeat, setColorSeat] =  React.useState('');
+
+    function bookSeats(event){
+        event.preventDefault();
+        if (seats.length === 0){
+            alert('Você deve escolher no mínimo um assento')
+        }
+        return (
+            console.log(seats, )
+        )
+    }
 
     return (
         <Container>
@@ -38,15 +84,8 @@ export default function SessionPage (){
                 <h1><span>Selecione o(s) assento(s)</span></h1>
                 <ContainerSeats>
 
-                    { seats.map( item =>{
-                    return item.isAvailable ? 
-                    <SeatAvailable key={item.id} className={colorSeat} onClick={()=> setColorSeat('selected')}>
-                        <span>{item.name}</span>
-                    </SeatAvailable>
-                    :
-                    <SeatUnavailable key={item.id}>
-                        <span>{item.name}</span>
-                    </SeatUnavailable>
+                    { seats.map( (item, index) =>{
+                    return <Seat isAvailable={item.isAvailable} key={item.id} name={item.name}/>
                     } )}
 
                 </ContainerSeats>
@@ -67,6 +106,20 @@ export default function SessionPage (){
                         <span>Indisponivel</span>
                     </SeatLegend>
                 </ContainerLegends>
+
+                <FormContainer onSubmit={bookSeats} >
+                    <div>
+                        <label for="name">Nome do comprador:</label>
+                        <input type="text" id='name' placeholder='Digite seu nome...'
+                        value={name} onChange={ e => setName(e.target.value)}/>
+                    </div>
+                    <div>
+                        <label for="cpf">CPF do comprador: </label>
+                        <input type="number" id='cpf' placeholder='Digite seu CPF...' minLength={"9"}
+                        value={cpf} onChange={ e => setCpf(e.target.value)}/>
+                    </div>
+                    <Link to={'/sucesso'}><button>Reservar Assento(s)</button></Link>
+                </FormContainer>
                 
             </BoxSession>
 
@@ -74,11 +127,46 @@ export default function SessionPage (){
             weekDay={weekDay} hour={hour}/>
 
         </Container>
-
     )
 }
 
 // & CSS  STYLED-COMPONENTS
+
+const FormContainer = styled.form`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    gap: 10px;
+    div{
+        display: flex;
+        flex-direction: column;
+        width: 70%;
+    }
+    input{
+        padding: 10px;
+    }
+    Link button{
+        padding: 10px;
+        width: 50%;
+    }
+`
+
+
+const SeatToChose = styled.div`
+    display: flex; justify-content: center; align-items: center;
+    background-color: ${ props => props.isClicked ? '#8DD7CF':'#C3CFD9'} ;
+    padding: 5px;
+    border-radius: 19px;
+    border: 1px solid ${ props => props.isClicked ? '#45BDB0':'#808F9D'};
+    width: 15px; height: 15px;
+    cursor: pointer;
+    span{
+        line-height: 0px;
+        font-size: 0.8em;
+    }
+`
 
 const Container = styled.div`
     margin-top: 68px;
@@ -112,11 +200,12 @@ const ContainerSeats = styled.div`
 
 const SeatAvailable = styled.div`
     display: flex; justify-content: center; align-items: center;
-    background-color: #C3CFD9;
+    background-color:  #C3CFD9;
     padding: 5px;
     border-radius: 19px;
-    border: 1px solid #8c959c;
+    border: 1px solid #808F9D;
     width: 15px; height: 15px;
+    cursor: pointer;
     span{
         line-height: 0px;
         font-size: 0.8em;
